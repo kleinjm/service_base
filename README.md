@@ -194,7 +194,7 @@ end
 
 ### ApplicationRecord Args
 
-You can accept any `ApplicationRecord` via
+If you add `ApplicationRecord = Types.Instance(ApplicationRecord)` in a Rails project, you can accept any `ApplicationRecord` via
 
 `argument(:my_record, ApplicationRecord)`
 
