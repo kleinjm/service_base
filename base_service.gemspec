@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'base_service'
-  spec.version       = BaseService::VERSION
+  spec.version       = '1.0.1'
   spec.authors       = ['James Klein']
   spec.email         = ['kleinjm007@gmail.com']
 
