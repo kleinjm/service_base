@@ -5,9 +5,9 @@ require "dry-struct"
 require "dry/matcher/result_matcher"
 require "dry/monads"
 require "dry/monads/do"
+require 'memery'
 
-# Please read: https://www.notion.so/patchtech/BaseService-README-2bc7fb23a83a470eb2a108abfbbf72ec
-class BaseService < Dry::Struct
+class Service < Dry::Struct
   extend Dry::Monads::Result::Mixin::Constructors
   include Dry::Monads::Do.for(:call)
   include Dry::Monads[:result, :do]
@@ -94,45 +94,10 @@ class BaseService < Dry::Struct
     end
   end
 
-  # Given a project and an organization, return an array of project inventory
-  # IDs that are allowed to be ordered/purchased by the organization.
-  def allowed_project_inventory_ids(project_id:, organization:)
-    # Determine the accessible project inventories for the project and pass
-    # them into the service to ensure a visible project inventory is selected
-    policy_context = UserContext.new(organization:)
-    project_inventory = ProjectInventoryPolicy::ConsumerBaseScope.new(
-      policy_context,
-      ProjectInventory,
-    ).resolve
-    project_inventory.where(project_id:).pluck(:id)
-  end
-
-  # Return a ResponseFailure
-  def ResponseFailure(message, code) # rubocop:disable Naming/MethodName
-    trace_caller = Dry::Monads::RightBiased::Left.trace_caller
-    ResponseFailure.new(message, code, trace_caller)
-  end
-
   private
 
   # The call method that must be defined by every inheriting service class
   def call
     raise(NotImplementedError)
-  end
-
-  # A locale lookup helper that uses the name of the service
-  def locale(selector, args = {})
-    class_name = self.class.name.gsub("::", ".").underscore
-    I18n.t(".#{selector}", scope: "services.#{class_name}", **args)
-  end
-
-  # Structured Monad Result Failure type for returning a ResponseError
-  class ResponseFailure < Dry::Monads::Result::Failure
-    def initialize(
-      message, code,
-      trace = Dry::Monads::RightBiased::Left.trace_caller
-    )
-      super(ResponseError.new(message:, code:), trace)
-    end
   end
 end
