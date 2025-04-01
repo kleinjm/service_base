@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Defines Dry Types. These Types are included in the BaseService for type
+# Defines Dry Types. These Types are included in the ServiceBase for type
 # enforcement when defining `argument`s.
 #
 # For example, you may want to add `ApplicationRecord = Types.Instance(ApplicationRecord)`
@@ -10,9 +10,11 @@
 
 require 'dry-types'
 
-module Types
-  include Dry.Types()
+module ServiceBase
+  module Types
+    include Dry.Types()
 
-  UpCasedString = Types::String.constructor(&:upcase)
-  Boolean = Bool # alias the built in type, Bool
+    UpCasedString = Types::String.constructor(&:upcase)
+    Boolean = Bool # alias the built in type, Bool
+  end
 end

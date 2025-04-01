@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "dry-matcher"
-require "dry-struct"
-require "dry/matcher/result_matcher"
-require "dry/monads"
-require "dry/monads/do"
+require 'dry-matcher'
+require 'dry-struct'
+require 'dry/matcher/result_matcher'
+require 'dry/monads'
+require 'dry/monads/do'
 require 'memery'
 
 class Service < Dry::Struct
@@ -19,7 +19,7 @@ class Service < Dry::Struct
     attr_reader(:failure)
 
     def initialize(failure)
-      super("Failed to call service")
+      super('Failed to call service')
       @failure = failure
     end
   end
@@ -29,15 +29,15 @@ class Service < Dry::Struct
     #
     # The default empty hash is important to prevent an argument error when
     # passing no arguments to a service that defines defaults for every argument.
-    def call(args = {}, &)
-      validate_args!(args:)
+    def call(args = {}, &block)
+      validate_args!(args: args)
 
       result = new(args).call
-      match_result(result, &)
+      match_result(result, &block)
     end
 
-    def call!(...)
-      result = call(...)
+    def call!(*args)
+      result = call(*args)
       raise(ServiceNotSuccessful, result.failure) if result.failure?
 
       result
@@ -47,7 +47,7 @@ class Service < Dry::Struct
     def pp
       logger = Logger.new($stdout)
       logger.info("#{name}: #{service_description}")
-      logger.info("Arguments")
+      logger.info('Arguments')
 
       schema_definition.each do |arg|
         logger.info("  #{arg[:name]} (#{arg[:type]}): #{arg[:description]}")
@@ -56,7 +56,7 @@ class Service < Dry::Struct
 
     # @description getter
     def service_description
-      @description || "No description"
+      @description || 'No description'
     end
 
     private
@@ -88,7 +88,7 @@ class Service < Dry::Struct
         list << {
           name: attribute_name,
           description: dry_type.meta[:description],
-          type: dry_type.type.name,
+          type: dry_type.type.name
         }
       end
     end
@@ -99,5 +99,18 @@ class Service < Dry::Struct
   # The call method that must be defined by every inheriting service class
   def call
     raise(NotImplementedError)
+  end
+
+  # A locale lookup helper that uses the name of the service
+  def locale(selector, args = {})
+    class_name = self.class.name.gsub('::', '.').underscore
+    I18n.t(".#{selector}", scope: "services.#{class_name}", **args)
+  end
+
+  # Structured Monad Result Failure type for returning a ResponseError
+  class ResponseFailure < Dry::Monads::Result::Failure
+    def initialize(message, code, trace = Dry::Monads::RightBiased::Left.trace_caller)
+      super(ResponseError.new(message: message, code: code), trace)
+    end
   end
 end

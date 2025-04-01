@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'base_service'
+require 'service_base'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

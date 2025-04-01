@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 Gem::Specification.new do |spec|
-  spec.name          = 'base_service'
+  spec.name          = 'service_base'
   spec.version       = '1.0.1'
   spec.authors       = ['James Klein']
   spec.email         = ['kleinjm007@gmail.com']
 
   spec.summary       = 'A base service class for Ruby applications'
   spec.description   = 'A base service class for Ruby applications with argument type annotations and railway-oriented programming'
-  spec.homepage      = 'https://github.com/kleinjm/base_service'
+  spec.homepage      = 'https://github.com/kleinjm/service_base'
   spec.license       = 'MIT'
   spec.required_ruby_version = '>= 2.6.0'
 

@@ -1,4 +1,4 @@
-# BaseService
+# Service Base
 
 A base service class for Ruby applications that provides common functionality and argument type annotations.
 
@@ -7,7 +7,7 @@ A base service class for Ruby applications that provides common functionality an
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "base_service"
+gem "service_base"
 ```
 
 And then execute:
@@ -17,7 +17,7 @@ $ bundle install
 
 Or install it yourself as:
 ```bash
-$ gem install base_service
+$ gem install service_base
 ```
 
 # Base Service Pattern
@@ -29,7 +29,7 @@ The Base Service Pattern uses a modified [Railway
 Pattern](https://fsharpforfunandprofit.com/posts/recipe-part2/) set up and enforced by the `Service` class,
 which every service inherits from.
 
-### Recommended resources
+## Recommended resources
 
 - Highly recommended video inspiring this pattern: [Service Objects with
 Dry.rb](https://www.youtube.com/watch?v=YXiqzHMmv_o)
@@ -175,7 +175,7 @@ A service should also define a `description`. This is
 recommended for self-documentation, ie.
 
 ```ruby
-class MyService < BaseService
+class MyService < Service
   description("Does a lot of cool things")
 end
 ```
@@ -185,7 +185,7 @@ use `attributes`. This is a very useful technique for
 services that update an object. For example
 
 ```ruby
-class User::UpdateService < BaseService
+class User::UpdateService < Service
   def call
     user.update(attributes)
   end
@@ -294,7 +294,7 @@ blocks or other sub-modules. See [https://github.com/dry-rb/dry-monads/issues/68
 The following methods are made available by including the base service testing in your test suite.
 
 ```ruby
-require "base_service/rspec"
+require "service_base/rspec"
 ```
 
 ```ruby
