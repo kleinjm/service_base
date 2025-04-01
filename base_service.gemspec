@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'base_service'
-  spec.version       = '1.0.0'
+  spec.version       = BaseService::VERSION
   spec.authors       = ['James Klein']
   spec.email         = ['kleinjm007@gmail.com']
 
@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir.glob('{lib}/**/*') + %w[README.md LICENSE.txt]
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activesupport', '~> 7.0'
   spec.add_dependency 'dry-matcher', '~> 0.8.0'
   spec.add_dependency 'dry-monads', '~> 1.6'
   spec.add_dependency 'dry-struct', '~> 1.6'

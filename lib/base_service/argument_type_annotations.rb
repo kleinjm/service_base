@@ -1,12 +1,9 @@
 # frozen_string_literal: true
 
-require 'active_support'
-require 'active_support/core_ext'
-
 module ArgumentTypeAnnotations
   class << self
     def extended(klass)
-      if !klass.is_a?(Class) || klass.ancestors.exclude?(Dry::Struct)
+      if !klass.is_a?(Class) || !klass.ancestors.include?(Dry::Struct)
         raise(TypeError, "#{name} should be extended on a Dry::Struct subclass")
       end
 
@@ -16,7 +13,7 @@ module ArgumentTypeAnnotations
     end
 
     def included(klass)
-      if !klass.singleton_class? || klass.attached_object.ancestors.exclude?(Dry::Struct)
+      if !klass.singleton_class? || !klass.attached_object.ancestors.include?(Dry::Struct)
         raise(TypeError, "#{name} should be included on the singleton class of a Dry::Struct subclass")
       end
 
@@ -29,7 +26,7 @@ module ArgumentTypeAnnotations
   # Defines an argument using the BaseService DSL.
   # Under the hood, this uses dry-struct's attribute DSL.
   def argument(name, type, configuration = {}, &)
-    description = configuration[:description].presence
+    description = configuration[:description] == "" ? nil : configuration[:description]
     type = type.meta(description:)
 
     default = configuration[:default]
@@ -81,7 +78,7 @@ module ArgumentTypeAnnotations
   # Ensures that provided args are declared as `argument`s
   def validate_args!(args:)
     invalid_args = (args.keys - attribute_names)
-    return if invalid_args.blank?
+    return if invalid_args.empty?
 
     raise(
       ArgumentError,
