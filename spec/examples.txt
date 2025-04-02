@@ -1,4 +1,4 @@
 example_id                                 | status | run_time        |
 ------------------------------------------ | ------ | --------------- |
-./spec/service_base/service_spec.rb[1:1:1] | passed | 0.00152 seconds |
-./spec/service_base/service_spec.rb[1:1:2] | passed | 0.00084 seconds |
+./spec/service_base/service_spec.rb[1:1:1] | passed | 0.00108 seconds |
+./spec/service_base/service_spec.rb[1:1:2] | passed | 0.00077 seconds |

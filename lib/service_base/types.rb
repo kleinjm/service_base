@@ -10,9 +10,11 @@
 
 require 'dry-types'
 
-module Types
-  include Dry.Types()
+module ServiceBase
+  module Types
+    include Dry.Types()
 
-  UpCasedString = Types::String.constructor(&:upcase)
-  Boolean = Bool # alias the built in type, Bool
+    UpCasedString = Types::String.constructor(&:upcase)
+    Boolean = Bool # alias the built in type, Bool
+  end
 end

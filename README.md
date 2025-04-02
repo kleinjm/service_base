@@ -20,6 +20,13 @@ Or install it yourself as:
 $ gem install service_base
 ```
 
+To follow convention in a Rails application, it's recommended that you create an `ApplicationService` subclass.
+
+```rb
+class ApplicationService < ServiceBase::Service
+end
+```
+
 # Base Service Pattern
 
 The general concept of a Service Pattern is useful when a you need to execute a set of
@@ -175,7 +182,7 @@ A service should also define a `description`. This is
 recommended for self-documentation, ie.
 
 ```ruby
-class MyService < Service
+class MyService < ServiceBase::Service
   description("Does a lot of cool things")
 end
 ```
@@ -185,7 +192,7 @@ use `attributes`. This is a very useful technique for
 services that update an object. For example
 
 ```ruby
-class User::UpdateService < Service
+class User::UpdateService < ServiceBase::Service
   def call
     user.update(attributes)
   end

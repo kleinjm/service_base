@@ -2,10 +2,13 @@
 
 require 'spec_helper'
 
-RSpec.describe Service do
+RSpec.describe ServiceBase::Service do
+  class ApplicationService < ServiceBase::Service
+  end
+
   describe 'call!' do
     it 'forwards the result when the call to the service succeeds' do
-      service = Class.new(Service) do
+      service = Class.new(ApplicationService) do
         def call
           Success('success')
         end
@@ -18,8 +21,8 @@ RSpec.describe Service do
     end
 
     it 'raises an error when the call to the service fails' do
-      service = Class.new(Service) do
-        argument(:should_fail, Types::Boolean)
+      service = Class.new(ApplicationService) do
+        argument(:should_fail, ServiceBase::Types::Boolean)
 
         def call
           Failure('failure') if should_fail
@@ -27,7 +30,7 @@ RSpec.describe Service do
       end
 
       expect { service.call!(should_fail: true) }
-        .to raise_error(Service::ServiceNotSuccessful) { |error| expect(error.failure).to eq('failure') }
+        .to raise_error(ApplicationService::ServiceNotSuccessful) { |error| expect(error.failure).to eq('failure') }
     end
   end
 end

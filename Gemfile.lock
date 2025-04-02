@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    service_base (1.0.1)
+    service_base (1.0.0)
       dry-matcher (~> 0.8.0)
       dry-monads (~> 1.6)
       dry-struct (~> 1.6)
