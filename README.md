@@ -170,6 +170,12 @@ Doing so will raise an `ArgumentError`.
 Additionally, be sure to `.freeze` any mutable default values, ie.  `default: {}.freeze`.
 Failure to do so will raise an `ArgumentError`.
 
+To allow multiple types as arguments, use `|`. For example,
+
+```rb
+argument(:value, String | Integer)
+```
+
 Empty strings attempted to coerce into integers will throw an error.
 See [https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661)
 To instead accept `nil`, do the following:
