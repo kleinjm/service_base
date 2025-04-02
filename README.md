@@ -165,13 +165,10 @@ The positional name and type arguments are required, the other options
 are as follows.
 `argument(:name, String, optional: true, description: "The User's name")`
 
-If an argument is optional and has a default value, simply set
-`default: your_value` but do not also specify
-`optional: true`. Doing so will raise an
-`ArgumentError`. Additionally, be sure to
-`.freeze` any mutable default values, ie.
-`default: {}.freeze`. Failure to do so will raise an
-`ArgumentError`.
+If an argument is optional and has a default value, simply set `default: your_value` but do not also specify `optional: true`.
+Doing so will raise an `ArgumentError`.
+Additionally, be sure to `.freeze` any mutable default values, ie.  `default: {}.freeze`.
+Failure to do so will raise an `ArgumentError`.
 
 Empty strings attempted to coerce into integers will throw an error.
 See [https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661)
@@ -187,32 +184,53 @@ class MyService < ServiceBase::Service
 end
 ```
 
-To get the full hash of `argument`s passed into a service,
-use `attributes`. This is a very useful technique for
+To get the full hash of `argument`'s keys and values passed into a service,
+use `arguments`. This is a very useful technique for
 services that update an object. For example
 
 ```ruby
 class User::UpdateService < ServiceBase::Service
+  argument(:name, String)
+
   def call
-    user.update(attributes)
+    user.update(arguments)
   end
 end
 ```
 
-### ApplicationRecord Args
-
-If you add `ApplicationRecord = Types.Instance(ApplicationRecord)` in a Rails project, you can accept any `ApplicationRecord` via
-
-`argument(:my_record, ApplicationRecord)`
-
-You can also limit the type of AR record via
-
-`argument(:my_record, Types.Instance(MyRecord))`
-
 ## Types
 
-Argument types are defined in Types, which can be extended, ie. app/models/types.rb, and are an extension of [Dry.rb’s
-Types](https://dry-rb.org/gems/dry-types/1.2/built-in-types/). In order to access constants outside of the dry.rb namespace,
+Argument types come from, [Dry.rb’s Types](https://dry-rb.org/gems/dry-types/1.2/built-in-types/), which can be extended.
+You may also add custom types as outlined in [Dry.rb Custom Types](https://dry-rb.org/gems/dry-types/1.2/custom-types/).
+
+It is recommended that you define your own `Type` module and include it in your `ServiceBase` subclass, as so.
+
+```rb
+# app/models/types.rb
+module Types
+  ApplicationRecord = Types.Instance(ApplicationRecord)
+  ControllerParams = ServiceBase::Types.Instance(ActionController::Parameters)
+end
+
+# app/services/application_service.rb
+class ApplicationService < ServiceBase::Service
+  include Types
+end
+
+# app/services/example_service.rb
+class ExampleService < ApplicationService
+  argument(:user, ApplicationRecord, description: "The user to update")
+  argument(:params, ControllerParams, description: "The attributes to update")
+end
+```
+
+You can also limit the type of `ApplicationRecord` record via
+
+`argument(:user, Types.Instance(User))`
+
+Or defining `User = Types.Instance(User)`
+
+Note: In order to access constants outside of the dry.rb namespace,
 or to access a type that collides with one of our defined types, you
 must include `::` to allow a global constant search.
 
@@ -222,11 +240,9 @@ Ie. `::ApplicationRecord...`
 powerful and recommended for automatic parsing of inputs, ie. controller
 parameters.
 
-For example `argument(:number, Params::Integer)` will
-convert `"12"` ⇒ `12`
+For example `argument(:number, Params::Integer)` will convert `"12"` ⇒ `12`.
 
-Entire hash structures may also be validated and automatically
-parsed, for example:
+Entire hash structures may also be validated and automatically parsed, for example:
 
 ```ruby
 argument(

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require 'dry-matcher'
-require 'dry-struct'
-require 'dry/matcher/result_matcher'
 require 'dry/monads'
 require 'dry/monads/do'
+require 'dry/matcher/result_matcher'
+require 'dry-types'
+require 'dry-struct'
+require 'dry-matcher'
 require 'memery'
 
 module ServiceBase
@@ -12,6 +13,7 @@ module ServiceBase
     extend Dry::Monads::Result::Mixin::Constructors
     include Dry::Monads::Do.for(:call)
     include Dry::Monads[:result, :do]
+    include Dry.Types()
 
     extend ArgumentTypeAnnotations
     include Memery
@@ -95,24 +97,16 @@ module ServiceBase
       end
     end
 
+    # Returns a hash of all arguments and their values
+    def arguments
+      attributes
+    end
+
     private
 
     # The call method that must be defined by every inheriting service class
     def call
       raise(NotImplementedError)
-    end
-
-    # A locale lookup helper that uses the name of the service
-    def locale(selector, args = {})
-      class_name = self.class.name.gsub('::', '.').underscore
-      I18n.t(".#{selector}", scope: "services.#{class_name}", **args)
-    end
-
-    # Structured Monad Result Failure type for returning a ResponseError
-    class ResponseFailure < Dry::Monads::Result::Failure
-      def initialize(message, code, trace = Dry::Monads::RightBiased::Left.trace_caller)
-        super(ResponseError.new(message: message, code: code), trace)
-      end
     end
   end
 end

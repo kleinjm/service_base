@@ -7,10 +7,6 @@ module ServiceBase
         if !klass.is_a?(Class) || !klass.ancestors.include?(Dry::Struct)
           raise(TypeError, "#{name} should be extended on a Dry::Struct subclass")
         end
-
-        # `Types` overrides default types to help shorthand Type::String.
-        # To access Ruby's native types within a service, use `::`, ie. `::String`
-        klass.include(Types)
       end
 
       def included(klass)
