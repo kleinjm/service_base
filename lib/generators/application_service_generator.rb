@@ -4,7 +4,7 @@ class ApplicationServiceGenerator < Rails::Generators::Base
   source_root File.expand_path('templates', __dir__)
 
   def create_application_service_file
-    service_path = 'app/models/application_service.rb'
+    service_path = 'app/services/application_service.rb'
 
     if File.exist?(service_path)
       # File exists, check if it needs to be updated

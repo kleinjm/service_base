@@ -31,6 +31,7 @@ rails g service_base:install
 
 Installing the gem in a Rails project will create an `ApplicationService` subclass, following Rails conventions.
 ```rb
+# app/services/application_service.rb
 class ApplicationService < ServiceBase::Service
 end
 ```
