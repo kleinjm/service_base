@@ -3,7 +3,6 @@
 require 'dry/monads'
 require 'dry/monads/do'
 require 'dry/matcher/result_matcher'
-require 'dry-types'
 require 'dry-struct'
 require 'dry-matcher'
 require 'memery'
@@ -13,7 +12,6 @@ module ServiceBase
     extend Dry::Monads::Result::Mixin::Constructors
     include Dry::Monads::Do.for(:call)
     include Dry::Monads[:result, :do]
-    include Dry.Types()
 
     extend ArgumentTypeAnnotations
     include Memery

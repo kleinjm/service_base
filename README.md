@@ -1,6 +1,10 @@
 # Service Base
 
-A base service class for Ruby applications that provides common functionality and argument type annotations.
+A base service class for Ruby applications that provides common functionality and argument type annotations DSL.
+
+## Dependencies
+
+Simply Ruby. This gem can be used in a standalone fashion and Rails is not a dependency. This gem does, however, work very nicely with Rails conventions and includes generators for getting set up quickly.
 
 ## Installation
 
@@ -11,17 +15,21 @@ gem "service_base"
 ```
 
 And then execute:
-```bash
+```sh
 $ bundle install
 ```
 
 Or install it yourself as:
-```bash
+```sh
 $ gem install service_base
 ```
 
-To follow convention in a Rails application, it's recommended that you create an `ApplicationService` subclass.
+For Rails projects, then run:
+```sh
+rails g service_base:install
+```
 
+Installing the gem in a Rails project will create an `ApplicationService` subclass, following Rails conventions.
 ```rb
 class ApplicationService < ServiceBase::Service
 end
@@ -47,46 +55,37 @@ on Rails pattern: Service Objects](https://dev.to/joker666/ruby-on-rails-pattern
 
 ## Advantages
 
-- The action of a service should read as a list of steps which makes
-reading and maintaining the service easy.
+- The action of a service should read as a list of steps which makes reading and maintaining the service easy.
 - Instantiation of a service object allows fine grained control over
 the arguments being passed in and reduces the need to pass arguments
 between methods in the same instance.
 - Encapsulation of logic in a service makes for reusable code, simpler
 testing, and extracts logic from other objects that should not be
 responsible for handling that logic.
+- Removes the need for ActiveRecord callbacks and consolidates logic of related models into one place in the codebase.
 - Verb-naming makes the intention of the service explicit.
 - Single service actions reveal a single public interface.
 
 ## What defines a service?
 
-- The main difference between a model and a service is that a model
-“models” **what** something is while a service lists
-**how** an action is performed.
+- The main difference between a model and a service is that a model “models” **what** something is while a service lists **how** an action is performed.
 - A service has a single public method, ie. `call`
-- A model is a noun, a service is a verb’ed noun that does the one
-thing the name implies
-    - Ie. `User` (model) versus `User::CreatorService` (service)
-    - Ie. `StripeResponse` (model) versus `PaymentHistoryFetcherService` (service)
+- A model is a noun, a service is a verb or verb’ed noun that does the one thing the name implies
+  - Ie. `User` (model) versus `User::CreatorService` (service)
+  - Ie. `StripeResponse` (model) versus `PaymentHistoryFetcherService` (service)
 
 ## Naming
 
-One of the best ways to use the service pattern is for CRUD services - Ie. `ActiveRecordModel` +
-`::CreateService`, `::UpdateService`,
-`::DeleteService`. This avoids the use of callbacks, mystery guests, and unexpected side effects because all the steps to do a CRUD action are in one place and in order.
+One of the best ways to use the service pattern is for CRUD services - Ie. `ActiveRecordModel` + `::CreateService`, `::UpdateService`, `::DeleteService`. This avoids the use of callbacks, mystery guests, and unexpected side effects because all the steps to do a CRUD action are in one place and in order of execution.
 
 ## Returning a Result
 
-Each service inheriting from BaseService must define
-`#call` and return a `Success` or
-`Failure`. These types are `Result` Monads from
-the dry-monads gem. Both `Result` types may take any value as
-input, ie. `Success(user)`,
-`Failure(:not_found)`
+Each service inheriting from BaseService must define `#call` and return a `Success` or `Failure`. These types are `Result` Monads from
+the [dry-monads gem](https://dry-rb.org/gems/dry-monads/1.3/). Both `Result` types may take any value as input, ie. `Success(user)`, `Failure(:not_found)`
 
 `Failure` can return any value you’d like the caller to have in order to understand the failure.
 
-The caller of service can unwrap the Success, Failure or like so
+The caller of service can unwrap the `Success` or `Failure`.
 
 ```ruby
 MyService.call(name: user.name) do |on|
@@ -95,8 +94,7 @@ MyService.call(name: user.name) do |on|
 end
 ```
 
-To match different expected values of success or failure, pass the
-value as an argument.
+To match different expected values of success or failure, pass the value as an argument when unwrapping it.
 
 ```ruby
 MyService.call(name: user.name) do |on|
@@ -107,36 +105,23 @@ MyService.call(name: user.name) do |on|
 end
 ```
 
-Note that you must define both `on.success` and
-`on.failure` or else an error will be raised in the
-caller.
+Note that you must define both `on.success` and `on.failure` or else an error will be raised in the caller.
 
-Note that `raise`ing an error requires an error class
-unless the error itself is an instance of an error class.
+Note that `raise`ing an error requires an error class unless the error itself is an instance of an error class.
 
-Please see [result](https://dry-rb.org/gems/dry-monads/1.3/result/) for
-additional mechanisms used for chaining results and handling
-success/failure values.
-
-A recommended pattern within services is to return a
-`Success` and/or `Failure` from each method and
-yield the result in the caller. This forces you to consider how each
-method could fail and allows for automatic bubbling up of the
-`Failure` via railway-style programming. Examples at [https://dry-rb.org/gems/dry-monads/1.3/do-notation/#adding-batteries](https://dry-rb.org/gems/dry-monads/1.3/do-notation/#adding-batteries)
+Please see [result](https://dry-rb.org/gems/dry-monads/1.3/result/) for additional mechanisms used for chaining results and handling success/failure values.
 
 ## Failures vs Exceptions
 
-Failure = a known error case that may happen and should be gracefully
-handled
+Failure = a known error case that may happen and should be gracefully handled
 
-Raising = an unexpected exception (exceptional circumstances)
+Raising = an **unexpected** exception (exceptional circumstances)
 
 Any call that `raise`s is not rescued by default and will
-behave as a typical Ruby exception. This is a good thing. We will be
+behave as a typical Ruby exception. This is a good thing. You will be
 alerted when exceptional circumstances arise.
 
-Return a `Failure` instead when you know of a potential
-failure case.
+Return a `Failure` instead when you know of a potential failure case.
 
 Avoid rescuing major error/exception superclasses such as
 `StandardError`. Doing so will rescue all subclasses of that
@@ -161,41 +146,34 @@ end
 ## Arguments
 
 Arguments to a service are defined via the `argument` DSL.
-The positional name and type arguments are required, the other options
-are as follows.
-`argument(:name, String, optional: true, description: "The User's name")`
+The positional name and type arguments are required, the other options are as follows.
+`argument(:name, Type::String, optional: true, description: "The User's name")`
 
 If an argument is optional and has a default value, simply set `default: your_value` but do not also specify `optional: true`.
 Doing so will raise an `ArgumentError`.
+
 Additionally, be sure to `.freeze` any mutable default values, ie.  `default: {}.freeze`.
 Failure to do so will raise an `ArgumentError`.
 
 To allow multiple types as arguments, use `|`. For example,
 
 ```rb
-argument(:value, String | Integer)
+argument(:value, Type::String | Type::Integer)
 ```
 
-Empty strings attempted to coerce into integers will throw an error.
-See [https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661)
-To instead accept `nil`, do the following:
-`argument(:some_integer, Params::Nil | Params::Integer)`
-
-A service should also define a `description`. This is
-recommended for self-documentation, ie.
+A service should also define a `description`. This is recommended for self-documentation, ie.
 
 ```ruby
-class MyService < ServiceBase::Service
+class MyService < ApplicationService
   description("Does a lot of cool things")
 end
 ```
 
 To get the full hash of `argument`'s keys and values passed into a service,
-use `arguments`. This is a very useful technique for
-services that update an object. For example
+call `arguments`. This is a very useful technique for services that update an object. For example
 
 ```ruby
-class User::UpdateService < ServiceBase::Service
+class User::UpdateService < ApplicationService
   argument(:name, String)
 
   def call
@@ -204,60 +182,68 @@ class User::UpdateService < ServiceBase::Service
 end
 ```
 
+### Nil
+
+Empty strings attempted to coerce into integers will throw an error.
+See [this GH issue for an explaination](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661)
+To instead accept `nil`, do the following:
+`argument(:some_integer, Type::Params::Nil | Type::Params::Integer)`
+
+
 ## Types
 
 Argument types come from, [Dry.rb’s Types](https://dry-rb.org/gems/dry-types/1.2/built-in-types/), which can be extended.
 You may also add custom types as outlined in [Dry.rb Custom Types](https://dry-rb.org/gems/dry-types/1.2/custom-types/).
 
-It is recommended that you define your own `Type` module and include it in your `ServiceBase` subclass, as so.
+The Rails generators will create a Type module, which includes `ServiceBase::Types`, which includes `Dry.Types`. Therefore, all types defined in Dry.rb's Types are available to you.
 
 ```rb
-# app/models/types.rb
-module Types
-  ApplicationRecord = Types.Instance(ApplicationRecord)
-  ControllerParams = ServiceBase::Types.Instance(ActionController::Parameters)
-end
+# app/models/type.rb
+module Type
+  include ServiceBase::Types
 
-# app/services/application_service.rb
-class ApplicationService < ServiceBase::Service
-  include Types
+  # Any ApplicationRecord subclass
+  ApplicationRecord = Dry.Types.Instance(ApplicationRecord)
+  User = Dry.Types.Instance(User)
+  Project = Dry.Types.Instance(Project)
+
+  # Controller params are an ActionController::Parameters instance or a hash (easier for testing)
+  ControllerParams = Dry.Types.Instance(ActionController::Parameters) | Dry.Types.Instance(Hash)
+
+  # Customer param hashes
+  AddressParams = Dry::Types['hash'].schema(
+    address: Dry::Types['string'],
+    address2: Dry::Types['string'],
+    city: Dry::Types['string'],
+    state: Dry::Types['string'],
+    zip: Dry::Types['string']
+  )
 end
 
 # app/services/example_service.rb
 class ExampleService < ApplicationService
-  argument(:user, ApplicationRecord, description: "The user to update")
-  argument(:params, ControllerParams, description: "The attributes to update")
+  argument(:any_model, Type::ApplicationRecord, description: "The model to update")
+  argument(:params, Type::ControllerParams, description: "The attributes to update")
+  argument(:user, Type::User, description: "A cool user that relates to the model")
+  argument(:project, Type::Project, description: "A project that the user is working on")
+  argument(:address, Type::AddressParams, description: "The user's address")
 end
 ```
 
-You can also limit the type of `ApplicationRecord` record via
+Dry.rb's `Coercible` and `Params` Types are very powerful and recommended for automatic parsing of inputs, ie. controller parameters.
 
-`argument(:user, Types.Instance(User))`
-
-Or defining `User = Types.Instance(User)`
-
-Note: In order to access constants outside of the dry.rb namespace,
-or to access a type that collides with one of our defined types, you
-must include `::` to allow a global constant search.
-
-Ie. `::ApplicationRecord...`
-
-`Coercible` and `Params` Types are very
-powerful and recommended for automatic parsing of inputs, ie. controller
-parameters.
-
-For example `argument(:number, Params::Integer)` will convert `"12"` ⇒ `12`.
+For example `argument(:number, Type::Params::Integer)` will convert `"12"` ⇒ `12`.
 
 Entire hash structures may also be validated and automatically parsed, for example:
 
 ```ruby
 argument(
   :line_items,
-  Array(
-    Hash.schema(
-      vintage_year: Params::Integer,
-      number_of_credits: Params::Integer,
-      price_dollars_usd: Params::Float,
+  Type::Array(
+    Type::Hash.schema(
+      vintage_year: Type::Params::Integer,
+      number_of_credits: Type::Params::Integer,
+      price_dollars_usd: Type::Params::Float,
     ),
   ),
 ```
@@ -288,10 +274,10 @@ roll the transaction back](https://www.loyalty.dev/posts/returning-from-transact
 
 ## Internal Method Result
 
-The Railway Pattern can be used internally within services via
-`yield` and `do` notation. This forces the
-programmer to think about the success and failure cases within each
-method. See [the dry-monads gem](https://dry-rb.org/gems/dry-monads/1.3/) for more details.
+A recommended pattern within services is to return a `Success` and/or `Failure` from each method and
+`yield` the result in the caller. This forces you to consider how each
+method could fail and allows for automatic bubbling up of the
+`Failure` via railway-style programming. Examples at [https://dry-rb.org/gems/dry-monads/1.3/do-notation/#adding-batteries](https://dry-rb.org/gems/dry-monads/1.3/do-notation/#adding-batteries)
 
 If the internal methods of the service need to unwrap values, those specific methods need to be registered with the result matcher like so.
 

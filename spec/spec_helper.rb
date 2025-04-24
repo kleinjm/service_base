@@ -3,6 +3,7 @@
 require 'simplecov'
 SimpleCov.start
 
+require 'pry-nav'
 require 'service_base'
 
 RSpec.configure do |config|

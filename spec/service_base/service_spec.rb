@@ -1,18 +1,22 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../support/application_service'
 
 RSpec.describe ServiceBase::Service do
-  class ApplicationService < ServiceBase::Service
-  end
-
   class ExampleService < ApplicationService
     description 'An example service'
 
-    argument(:succeeds, Bool, default: true, description: 'Whether the service should succeed')
+    argument(:succeeds, Type::Boolean, default: true, description: 'Whether the service should succeed')
+    argument(:dry_time, Type::Time, optional: true, description: 'Time from the dry-types gem')
+    argument(:example_model, Type::ExampleModel, optional: true, description: 'An example model')
 
     def call
       if succeeds
+        # Check that namespacing is working as expected and not conflicting with the `Type` module
+        ExampleModel.do_nothing
+        Time.now
+
         Success(arguments)
       else
         Failure('failure')
