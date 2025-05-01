@@ -3,13 +3,15 @@
 module ServiceSupport
   # Note that you must have at least one `on.success` and one `on.failure`
   # matcher for each block-style service call
-  def stub_service_success(service_class, success: nil)
+  def stub_service_success(service_class, success: nil, success_nil: false)
     block = double(:on)
     allow(block).to receive(:failure)
-    if success.present?
+    if !success.nil?
       allow(block).to receive(:success).and_yield(success)
+    elsif success_nil
+      allow(block).to receive(:success).and_yield(nil)
     else
-      allow(block).to receive(:success)
+      allow(block).to receive(:success).and_yield
     end
     allow(service_class).to receive(:call).and_yield(block)
   end

@@ -314,9 +314,10 @@ require "service_base/rspec"
 ```
 
 ```ruby
-stub_service_success(User::CreateService)
-stub_service_success(User::CreateService, success: true)
-stub_service_success(User::CreateService, success: create(:user))
+stub_service_success(User::CreateService) # yields the success block of the service call, disregarding the Success's value
+stub_service_success(User::CreateService, success: true) # yields the success block of the service call, returning `true` as the Success's value
+stub_service_success(User::CreateService, success: create(:user)) # yields the success block of the service call, returning a `User` instance as the Success's value
+stub_service_success(User::CreateService, success_nil: true) # yields the success block of the service call, returning `nil` as the Success's value
 
 stub_service_failure(User::CreateService, failure: "error")
 stub_service_failure(User::CreateService failure: :invalid_email, matched: true)
