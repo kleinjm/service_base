@@ -5,7 +5,9 @@
       "Bash(bundle install:*)",
       "Bash(git rm:*)",
       "Bash(git log:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
