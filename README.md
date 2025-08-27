@@ -1,12 +1,57 @@
 # Service Base
 
 [![Test](https://github.com/kleinjm/service_base/actions/workflows/test.yml/badge.svg)](https://github.com/kleinjm/service_base/actions/workflows/test.yml)
+[![Gem Version](https://badge.fury.io/rb/service_base.svg)](https://badge.fury.io/rb/service_base)
 
-A base service class for Ruby applications that provides common functionality and argument type annotations DSL.
+A powerful base service class for Ruby applications that implements the Service Object pattern with type-safe arguments and railway-oriented programming using dry-rb gems.
 
-## Dependencies
+## ✨ Features
 
-Simply Ruby. This gem can be used in a standalone fashion and Rails is not a dependency. This gem does, however, work very nicely with Rails conventions and includes generators for getting set up quickly.
+- 🚂 **Railway-oriented programming** with automatic error handling
+- 🔒 **Type-safe arguments** with validation and coercion
+- 📝 **Self-documenting** services with descriptions
+- 🧪 **Test helpers** for easy mocking and stubbing  
+- ⚡ **Zero dependencies** - works standalone or with Rails
+- 🛠️ **Rails generators** for quick setup
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Service Pattern Overview](#service-pattern-overview)
+- [Usage](#usage)
+- [Arguments](#arguments)
+- [Types](#types)
+- [Transactions](#working-with-transactions)
+- [Testing](#test-support)
+- [Development](#development)
+
+## Quick Start
+
+```ruby
+# Define a service
+class User::CreateService < ApplicationService
+  description "Creates a new user with validation"
+  
+  argument :name, Type::String, description: "User's full name"
+  argument :email, Type::String, description: "User's email address"
+  argument :age, Type::Integer, optional: true, description: "User's age"
+
+  def call
+    user = User.new(arguments)
+    return Failure("Invalid user data") unless user.valid?
+    
+    user.save!
+    Success(user)
+  end
+end
+
+# Use the service
+User::CreateService.call(name: "John Doe", email: "john@example.com") do |on|
+  on.success { |user| redirect_to user_path(user) }
+  on.failure { |error| render json: { error: error }, status: 422 }
+end
+```
 
 ## Installation
 
@@ -38,14 +83,11 @@ class ApplicationService < ServiceBase::Service
 end
 ```
 
-# Base Service Pattern
+## Service Pattern Overview
 
-The general concept of a Service Pattern is useful when a you need to execute a set of
-sequential steps. The service encapsulates those steps into a single class with a single action to trigger the steps.
+The Service Object pattern is useful when you need to execute a set of sequential steps. The service encapsulates those steps into a single class with a single action to trigger the steps.
 
-The Base Service Pattern uses a modified [Railway
-Pattern](https://fsharpforfunandprofit.com/posts/recipe-part2/) set up and enforced by the `Service` class,
-which every service inherits from.
+This gem implements a modified [Railway Pattern](https://fsharpforfunandprofit.com/posts/recipe-part2/) that's set up and enforced by the `ServiceBase::Service` class, which every service inherits from.
 
 ## Recommended resources
 
@@ -81,14 +123,48 @@ responsible for handling that logic.
 
 One of the best ways to use the service pattern is for CRUD services - Ie. `ActiveRecordModel` + `::CreateService`, `::UpdateService`, `::DeleteService`. This avoids the use of callbacks, mystery guests, and unexpected side effects because all the steps to do a CRUD action are in one place and in order of execution.
 
-## Returning a Result
+## Usage
 
-Each service inheriting from BaseService must define `#call` and return a `Success` or `Failure`. These types are `Result` Monads from
-the [dry-monads gem](https://dry-rb.org/gems/dry-monads/1.3/). Both `Result` types may take any value as input, ie. `Success(user)`, `Failure(:not_found)`
+### Defining a Service
 
-`Failure` can return any value you’d like the caller to have in order to understand the failure.
+Every service must:
+1. Inherit from `ApplicationService` (or `ServiceBase::Service` directly)
+2. Define a `#call` method that returns `Success(value)` or `Failure(error)`
+3. Use the `argument` DSL to define typed arguments
+4. Optionally include a `description` for documentation
 
-The caller of service can unwrap the `Success` or `Failure`.
+```ruby
+class User::UpdateService < ApplicationService
+  description "Updates user attributes with validation"
+  
+  argument :user, Type::User, description: "User to update"
+  argument :attributes, Type::Hash, description: "Attributes to update"
+  argument :notify, Type::Boolean, default: true, description: "Send notification email"
+
+  def call
+    return Failure("User is archived") if user.archived?
+    
+    user.assign_attributes(attributes)
+    return Failure(user.errors.full_messages) unless user.valid?
+    
+    user.save!
+    send_notification if notify
+    Success(user)
+  end
+  
+  private
+  
+  def send_notification
+    UserMailer.updated(user).deliver_now
+  end
+end
+```
+
+### Calling a Service
+
+Services return `Result` monads from the [dry-monads gem](https://dry-rb.org/gems/dry-monads/1.3/). Both `Success` and `Failure` can contain any value, like `Success(user)` or `Failure(:not_found)`.
+
+The caller can unwrap the `Success` or `Failure`:
 
 ```ruby
 MyService.call(name: user.name) do |on|
@@ -148,36 +224,36 @@ end
 
 ## Arguments
 
-Arguments to a service are defined via the `argument` DSL.
-The positional name and type arguments are required, the other options are as follows.
-`argument(:name, Type::String, optional: true, description: "The User's name")`
+Arguments to a service are defined via the `argument` DSL. The positional name and type arguments are required, with additional options available:
+
+```ruby
+argument(:name, Type::String, optional: true, description: "The User's name")
+```
 
 If an argument is optional and has a default value, simply set `default: your_value` but do not also specify `optional: true`.
 Doing so will raise an `ArgumentError`.
 
-Additionally, be sure to `.freeze` any mutable default values, ie.  `default: {}.freeze`.
-Failure to do so will raise an `ArgumentError`.
+Additionally, be sure to `.freeze` any mutable default values, e.g., `default: {}.freeze`. Failure to do so will raise an `ArgumentError`.
 
-To allow multiple types as arguments, use `|`. For example,
+To allow multiple types as arguments, use `|`:
 
-```rb
+```ruby
 argument(:value, Type::String | Type::Integer)
 ```
 
-A service should also define a `description`. This is recommended for self-documentation, ie.
+A service should also define a `description`. This is recommended for self-documentation:
 
 ```ruby
 class MyService < ApplicationService
-  description("Does a lot of cool things")
+  description "Does a lot of cool things"
 end
 ```
 
-To get the full hash of `argument`'s keys and values passed into a service,
-call `arguments`. This is a very useful technique for services that update an object. For example
+To get the full hash of arguments passed into a service, call `arguments`. This is a very useful technique for services that update an object:
 
 ```ruby
 class User::UpdateService < ApplicationService
-  argument(:name, String)
+  argument :name, Type::String
 
   def call
     user.update(arguments)
@@ -185,12 +261,15 @@ class User::UpdateService < ApplicationService
 end
 ```
 
-### Nil
+### Nil Values
 
-Empty strings attempted to coerce into integers will throw an error.
-See [this GH issue for an explaination](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661)
-To instead accept `nil`, do the following:
-`argument(:some_integer, Type::Params::Nil | Type::Params::Integer)`
+Empty strings attempted to coerce into integers will throw an error. See [this GitHub issue for an explanation](https://github.com/dry-rb/dry-types/issues/344#issuecomment-518743661).
+
+To instead accept `nil`, use the following:
+
+```ruby
+argument :some_integer, Type::Params::Nil | Type::Params::Integer
+```
 
 
 ## Types
@@ -200,7 +279,7 @@ You may also add custom types as outlined in [Dry.rb Custom Types](https://dry-r
 
 The Rails generators will create a Type module, which includes `ServiceBase::Types`, which includes `Dry.Types`. Therefore, all types defined in Dry.rb's Types are available to you.
 
-```rb
+```ruby
 # app/models/type.rb
 module Type
   include ServiceBase::Types
@@ -213,7 +292,7 @@ module Type
   # Controller params are an ActionController::Parameters instance or a hash (easier for testing)
   ControllerParams = Dry.Types.Instance(ActionController::Parameters) | Dry.Types.Instance(Hash)
 
-  # Customer param hashes
+  # Custom param hashes
   AddressParams = Dry::Types['hash'].schema(
     address: Dry::Types['string'],
     address2: Dry::Types['string'],
@@ -225,40 +304,38 @@ end
 
 # app/services/example_service.rb
 class ExampleService < ApplicationService
-  argument(:any_model, Type::ApplicationRecord, description: "The model to update")
-  argument(:params, Type::ControllerParams, description: "The attributes to update")
-  argument(:user, Type::User, description: "A cool user that relates to the model")
-  argument(:project, Type::Project, description: "A project that the user is working on")
-  argument(:address, Type::AddressParams, description: "The user's address")
+  argument :any_model, Type::ApplicationRecord, description: "The model to update"
+  argument :params, Type::ControllerParams, description: "The attributes to update"
+  argument :user, Type::User, description: "A cool user that relates to the model"
+  argument :project, Type::Project, description: "A project that the user is working on"
+  argument :address, Type::AddressParams, description: "The user's address"
 end
 ```
 
-Dry.rb's `Coercible` and `Params` Types are very powerful and recommended for automatic parsing of inputs, ie. controller parameters.
+Dry.rb's `Coercible` and `Params` Types are very powerful and recommended for automatic parsing of inputs, e.g., controller parameters.
 
-For example `argument(:number, Type::Params::Integer)` will convert `"12"` ⇒ `12`.
+For example, `argument :number, Type::Params::Integer` will convert `"12"` ⇒ `12`.
 
 Entire hash structures may also be validated and automatically parsed, for example:
 
 ```ruby
-argument(
-  :line_items,
+argument :line_items,
   Type::Array(
     Type::Hash.schema(
       vintage_year: Type::Params::Integer,
       number_of_credits: Type::Params::Integer,
       price_dollars_usd: Type::Params::Float,
-    ),
-  ),
+    )
+  )
 ```
 
-## Working with transactions
+## Working with Transactions
 
 ⚠️  If your service makes more than one write call to the DB, you
 should wrap all operations in a single transaction with
-`::ApplicationRecord.transaction`.
+`ApplicationRecord.transaction`.
 
-According to the [Dry
-RB docs](https://dry-rb.org/gems/dry-monads/1.3/do-notation/#transaction-safety):
+According to the [Dry-RB documentation](https://dry-rb.org/gems/dry-monads/1.3/do-notation/#transaction-safety):
 
 > Under the hood, Do uses exceptions to halt unsuccessful
 operations…Since yield internally uses exceptions to
@@ -305,7 +382,7 @@ blocks or other sub-modules. See [https://github.com/dry-rb/dry-monads/issues/68
 
 ## Misc
 
-- To get a pretty printed description of a service and it’s args, run `ServiceClass.pp`
+- To get a pretty printed description of a service and its args, run `ServiceClass.pp`
 
 ## Test Support
 
@@ -322,7 +399,7 @@ stub_service_success(User::CreateService, success: create(:user)) # yields the s
 stub_service_success(User::CreateService, success_nil: true) # yields the success block of the service call, returning `nil` as the Success's value
 
 stub_service_failure(User::CreateService, failure: "error")
-stub_service_failure(User::CreateService failure: :invalid_email, matched: true)
+stub_service_failure(User::CreateService, failure: :invalid_email, matched: true)
 ```
 
 ## Development
