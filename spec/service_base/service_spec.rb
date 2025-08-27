@@ -77,5 +77,42 @@ RSpec.describe ServiceBase::Service do
       expect(logger).to have_received(:info).with('Arguments')
       expect(logger).to have_received(:info).with('  succeeds (TrueClass | FalseClass): Whether the service should succeed')
     end
+
+    it 'handles services without descriptions' do
+      service_without_description = Class.new(ApplicationService) do
+        argument(:test_arg, Type::String, description: 'A test argument')
+      end
+
+      logger = double
+      allow(Logger).to receive(:new).and_return(logger)
+      allow(logger).to receive(:info)
+
+      service_without_description.pp
+
+      expect(logger).to have_received(:info).with("#{service_without_description.name}: No description")
+    end
+  end
+
+  describe 'base call method' do
+    it 'raises NotImplementedError when call is not implemented' do
+      service = Class.new(ServiceBase::Service)
+      expect { service.new.send(:call) }.to raise_error(NotImplementedError)
+    end
+  end
+
+  describe 'ServiceNotSuccessful exception' do
+    it 'stores the failure and has a default message' do
+      failure_value = 'test failure'
+      exception = ServiceBase::Service::ServiceNotSuccessful.new(failure_value)
+      
+      expect(exception.failure).to eq(failure_value)
+      expect(exception.message).to eq('Failed to call service')
+    end
+  end
+
+  describe 'argument validation' do
+    it 'raises error for invalid arguments' do
+      expect { ExampleService.call(invalid_arg: 'value') }.to raise_error(ArgumentError, /provided invalid arguments: invalid_arg/)
+    end
   end
 end

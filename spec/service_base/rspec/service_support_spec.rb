@@ -45,4 +45,33 @@ RSpec.describe ServiceSupport do
       expect(call_service_with_value).to eq(nil)
     end
   end
+
+  describe '#stub_service_failure' do
+    def call_service_with_failure_handling
+      TestService.call do |on|
+        on.success { raise 'Should not be called' }
+        on.failure { |error| return error }
+      end
+    end
+
+    def call_service_with_matched_failure
+      TestService.call do |on|
+        on.success { raise 'Should not be called' }
+        on.failure(:specific_error) { |error| return "Matched: #{error}" }
+        on.failure { |error| return "Unmatched: #{error}" }
+      end
+    end
+
+    it 'stubs service failure with catch-all failure block' do
+      stub_service_failure(TestService, failure: 'test error')
+
+      expect(call_service_with_failure_handling).to eq('test error')
+    end
+
+    it 'stubs service failure with matched specific error' do
+      stub_service_failure(TestService, failure: :specific_error, matched: true)
+
+      expect(call_service_with_matched_failure).to eq('Matched: specific_error')
+    end
+  end
 end

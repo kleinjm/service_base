@@ -12,3 +12,4 @@
 .ruby-version
 *.gem
 /spec/examples.txt
+tags

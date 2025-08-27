@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
 require 'simplecov'
-SimpleCov.start
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/coverage/'
+  add_filter '/lib/generators/'
+  add_filter 'Gemfile'
+  add_filter 'Rakefile'
+
+  track_files 'lib/**/*.rb'
+
+  minimum_coverage 90
+end
 
 require 'pry-nav'
 require 'service_base'
