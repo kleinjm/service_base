@@ -1,5 +1,7 @@
 # Service Base
 
+[![Test](https://github.com/kleinjm/service_base/actions/workflows/test.yml/badge.svg)](https://github.com/kleinjm/service_base/actions/workflows/test.yml)
+
 A base service class for Ruby applications that provides common functionality and argument type annotations DSL.
 
 ## Dependencies
