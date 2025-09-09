@@ -9,7 +9,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(bundle lock:*)",
-      "Bash(ruby:*)"
+      "Bash(ruby:*)",
+      "Bash(gem push:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
