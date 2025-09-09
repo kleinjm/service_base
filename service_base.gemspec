@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'lib/service_base/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'service_base'
-  spec.version       = '1.0.4'
+  spec.version       = ServiceBase::VERSION
   spec.authors       = ['James Klein']
   spec.email         = ['kleinjm007@gmail.com']
 
@@ -14,9 +16,9 @@ Gem::Specification.new do |spec|
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage
-  spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/main/README.md"
+  spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/main/CHANGELOG.md"
 
-  spec.files = Dir.glob('{lib}/**/*') + %w[README.md LICENSE.txt]
+  spec.files = Dir.glob('{lib}/**/*') + %w[README.md LICENSE.txt CHANGELOG.md]
   spec.require_paths = ['lib']
 
   spec.add_dependency 'dry-matcher', '~> 0.8.0'
