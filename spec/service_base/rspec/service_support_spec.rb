@@ -62,6 +62,15 @@ RSpec.describe ServiceSupport do
       end
     end
 
+    def call_service_with_parameter_less_failure
+      TestService.call do |on|
+        on.success { raise 'Should not be called' }
+        on.failure do
+          return 'Handled without parameter'
+        end
+      end
+    end
+
     it 'stubs service failure with catch-all failure block' do
       stub_service_failure(TestService, failure: 'test error')
 
@@ -72,6 +81,29 @@ RSpec.describe ServiceSupport do
       stub_service_failure(TestService, failure: :specific_error, matched: true)
 
       expect(call_service_with_matched_failure).to eq('Matched: specific_error')
+    end
+
+    it 'stubs service failure with parameter-less failure handler' do
+      stub_service_failure(TestService, failure: 'test error')
+
+      expect(call_service_with_parameter_less_failure).to eq('Handled without parameter')
+    end
+  end
+
+  describe 'parameter-less success handlers' do
+    def call_service_with_parameter_less_success
+      TestService.call do |on|
+        on.success do
+          return 'Success without parameter'
+        end
+        on.failure { raise 'Should not be called' }
+      end
+    end
+
+    it 'stubs service success with parameter-less success handler' do
+      stub_service_success(TestService, success: 'some value')
+
+      expect(call_service_with_parameter_less_success).to eq('Success without parameter')
     end
   end
 end

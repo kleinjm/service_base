@@ -43,6 +43,35 @@ RSpec.describe ServiceBase::Service do
         end
       end.to raise_error(Dry::Matcher::NonExhaustiveMatchError)
     end
+
+    describe 'parameter-less failure handlers' do
+      it 'allows failure handlers without block parameters' do
+        result = nil
+        ExampleService.call(succeeds: false) do |on|
+          on.success { |value| result = value }
+          on.failure do
+            result = 'handled without parameter'
+          end
+        end
+
+        expect(result).to eq('handled without parameter')
+      end
+
+      it 'allows specific failure handlers without block parameters' do
+        result = nil
+        ExampleService.call(succeeds: false) do |on|
+          on.success { |value| result = value }
+          on.failure(:specific_error) do
+            result = 'handled specific error without parameter'
+          end
+          on.failure do
+            result = 'handled general error without parameter'
+          end
+        end
+
+        expect(result).to eq('handled general error without parameter')
+      end
+    end
   end
 
   describe '#call!' do

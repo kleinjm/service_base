@@ -8,7 +8,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(bundle lock:*)"
+      "Bash(bundle lock:*)",
+      "Bash(ruby:*)"
     ],
     "deny": [],
     "ask": []
