@@ -11,7 +11,9 @@
       "Bash(bundle lock:*)",
       "Bash(ruby:*)",
       "Bash(gem push:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)"
     ],
     "deny": [],
     "ask": []

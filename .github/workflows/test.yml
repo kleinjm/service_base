@@ -26,11 +26,9 @@ jobs:
     - name: Run tests
       run: bundle exec rspec
     
-    - name: Upload coverage reports to Codecov
+    - name: Upload coverage reports
       if: matrix.ruby-version == '3.4'
-      uses: codecov/codecov-action@v4
+      uses: actions/upload-artifact@v4
       with:
-        file: ./coverage/coverage.json
-        fail_ci_if_error: false
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        name: coverage-reports
+        path: coverage/
