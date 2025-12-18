@@ -375,6 +375,39 @@ method_name(order:) do |on|
 end
 ```
 
+## Calling Services from Services
+
+When a service calls another service internally, use `yield` to automatically bubble up failures. The `yield` keyword unwraps `Success` values and short-circuits on `Failure`.
+
+```ruby
+class User::OnboardService < ApplicationService
+  description "Creates a user and sends welcome email"
+
+  argument :name, Type::String, description: "User's name"
+  argument :email, Type::String, description: "User's email"
+
+  def call
+    user = yield User::CreateService.call(name: name, email: email)
+    yield Notification::WelcomeEmailService.call(user: user)
+    Success(user)
+  end
+end
+```
+
+If `User::CreateService` returns a `Failure`, that failure immediately becomes the return value of `User::OnboardService`—no explicit error checking required.
+
+Without `yield`, you would need to manually check and return failures:
+
+```ruby
+# Without yield (not recommended)
+def call
+  result = User::CreateService.call(name: name, email: email)
+  return result if result.failure?
+  user = result.value!
+  # ...
+end
+```
+
 ## Gotchas
 
 - `yield`ing does not work inside `concerning`
